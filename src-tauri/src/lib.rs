@@ -2,6 +2,7 @@ mod db;
 mod models;
 mod commands;
 mod tray;
+mod hotkey;
 
 use std::sync::Mutex;
 use rusqlite::Connection;
@@ -32,6 +33,7 @@ pub fn run() {
             commands::projects::delete_project,
         ])
         .setup(|app| {
+            hotkey::register_hotkey(&app.handle());
             tray::build_tray(&app.handle())?;
             Ok(())
         })

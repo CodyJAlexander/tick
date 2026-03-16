@@ -99,22 +99,30 @@ use std::sync::Mutex;
 
 #[tauri::command]
 pub fn create_entry(
+    app: tauri::AppHandle,
     db: State<'_, Mutex<Connection>>,
     task: String,
     started_at: String,
 ) -> Result<i64, String> {
     let conn = db.lock().map_err(|e| e.to_string())?;
-    create_entry_raw(&conn, &task, &started_at).map_err(|e| e.to_string())
+    let id = create_entry_raw(&conn, &task, &started_at).map_err(|e| e.to_string())?;
+    drop(conn);
+    crate::tray::notify_timer_changed(&app, true);
+    Ok(id)
 }
 
 #[tauri::command]
 pub fn stop_entry(
+    app: tauri::AppHandle,
     db: State<'_, Mutex<Connection>>,
     input: StopEntryInput,
 ) -> Result<(), String> {
     let conn = db.lock().map_err(|e| e.to_string())?;
     stop_entry_raw(&conn, input.id, &input.task, input.client_id, input.project_id, &input.stopped_at)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    drop(conn);
+    crate::tray::notify_timer_changed(&app, false);
+    Ok(())
 }
 
 #[tauri::command]
@@ -128,11 +136,22 @@ pub fn update_entry(
 
 #[tauri::command]
 pub fn delete_entry(
+    app: tauri::AppHandle,
     db: State<'_, Mutex<Connection>>,
     id: i64,
 ) -> Result<(), String> {
     let conn = db.lock().map_err(|e| e.to_string())?;
-    delete_entry_raw(&conn, id).map_err(|e| e.to_string())
+    // Check if the deleted entry was running before deleting
+    let was_running = get_running_entry_raw(&conn)
+        .ok().flatten()
+        .map(|e| e.id == id)
+        .unwrap_or(false);
+    delete_entry_raw(&conn, id).map_err(|e| e.to_string())?;
+    drop(conn);
+    if was_running {
+        crate::tray::notify_timer_changed(&app, false);
+    }
+    Ok(())
 }
 
 #[tauri::command]
