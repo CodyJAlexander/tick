@@ -16,15 +16,22 @@ function formatMs(ms: number): string {
 
 type TimelineView = "day" | "week";
 
+function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function getRange(view: TimelineView): [string, string] {
   const today = new Date();
   if (view === "day") {
-    const d = today.toISOString().slice(0, 10);
-    return [d + "T00:00:00Z", d + "T23:59:59Z"];
+    const d = localDateStr(today);
+    return [d + "T00:00:00", d + "T23:59:59"];
   }
   const from = new Date(today);
   from.setDate(today.getDate() - 6);
-  return [from.toISOString().slice(0, 10) + "T00:00:00Z", today.toISOString().slice(0, 10) + "T23:59:59Z"];
+  return [localDateStr(from) + "T00:00:00", localDateStr(today) + "T23:59:59"];
 }
 
 function groupByDate(entries: Entry[]): Map<string, Entry[]> {

@@ -19,10 +19,11 @@ it("renders task field with current value", () => {
 
 it("shows validation error when end is before start", async () => {
   const onSave = vi.fn();
-  render(<EditPopover entry={entry} clients={[]} projects={[]} onSave={onSave} onClose={vi.fn()} />);
+  const invalidEntry = { ...entry, stoppedAt: "2026-03-16T08:00:00.000Z" }; // before startedAt
+  render(<EditPopover entry={invalidEntry} clients={[]} projects={[]} onSave={onSave} onClose={vi.fn()} />);
   const saveBtn = screen.getByText("Save");
   fireEvent.click(saveBtn);
-  // After submitting with valid times (entry has stoppedAt > startedAt), onSave should be called
   await new Promise(r => setTimeout(r, 0));
-  expect(onSave).toHaveBeenCalled();
+  expect(onSave).not.toHaveBeenCalled();
+  expect(screen.getByText("End time must be after start time.")).toBeInTheDocument();
 });
