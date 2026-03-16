@@ -12,11 +12,29 @@
   "app": {
     "windows": [
       {
-        "title": "tick",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "title": "Tick",
+        "width": 900,
+        "height": 600,
+        "visible": false,
+        "decorations": true
+      },
+      {
+        "label": "popup",
+        "title": "",
+        "width": 360,
+        "height": 120,
+        "visible": false,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "center": true
       }
     ],
+    "trayIcon": {
+      "iconPath": "icons/tray-default.png",
+      "iconAsTemplate": true
+    },
     "security": {
       "csp": null
     }
