@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { invoke } from "@tauri-apps/api/core";
-import { vi, it, expect, beforeEach } from "vitest";
+import { vi, it, beforeEach } from "vitest";
 import { Timeline } from "./Timeline";
 
 const mockEntry = {

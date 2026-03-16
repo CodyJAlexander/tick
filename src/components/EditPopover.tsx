@@ -22,6 +22,10 @@ export function EditPopover({ entry, clients, projects, onSave, onClose }: Props
   const filteredProjects = projects.filter(p => p.clientId === clientId);
 
   const handleSave = async () => {
+    if (!task.trim()) {
+      setError("Task name is required.");
+      return;
+    }
     if (!isRunning && stoppedAt <= startedAt) {
       setError("End time must be after start time.");
       return;

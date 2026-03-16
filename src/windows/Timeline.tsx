@@ -45,7 +45,7 @@ function groupByDate(entries: Entry[]): Map<string, Entry[]> {
 
 export function Timeline() {
   const [view, setView] = useState<TimelineView>("day");
-  const [from, to] = getRange(view);
+  const [from, to] = useMemo(() => getRange(view), [view]);
   const { entries, updateEntry } = useEntries(from, to);
   const { clients } = useClients();
   const { projects } = useProjects();
