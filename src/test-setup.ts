@@ -9,3 +9,10 @@ vi.mock("@tauri-apps/api/event", () => ({
   emit: vi.fn(),
   TauriEvent: {},
 }));
+vi.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: vi.fn(() => ({
+    label: "main",
+    hide: vi.fn(() => Promise.resolve()),
+    show: vi.fn(() => Promise.resolve()),
+  })),
+}));
