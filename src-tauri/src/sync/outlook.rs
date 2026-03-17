@@ -92,6 +92,40 @@ pub async fn create_event(
     Ok(body.id)
 }
 
+pub async fn update_event(
+    token: &str,
+    event_id: &str,
+    task: &str,
+    client_name: &str,
+    project_name: &str,
+    started_at: &str,
+    stopped_at: &str,
+) -> Result<(), String> {
+    let client = reqwest::Client::new();
+    #[derive(Serialize)]
+    struct DateTime { #[serde(rename = "dateTime")] date_time: String, #[serde(rename = "timeZone")] time_zone: String }
+    #[derive(Serialize)]
+    struct Body { #[serde(rename = "contentType")] content_type: String, content: String }
+    #[derive(Serialize)]
+    struct Event { subject: String, body: Body, start: DateTime, end: DateTime }
+    let event = Event {
+        subject: task.to_string(),
+        body: Body { content_type: "Text".into(), content: format!("Client: {}\nProject: {}", client_name, project_name) },
+        start: DateTime { date_time: started_at.to_string(), time_zone: "UTC".into() },
+        end: DateTime { date_time: stopped_at.to_string(), time_zone: "UTC".into() },
+    };
+    client
+        .patch(format!("https://graph.microsoft.com/v1.0/me/events/{}", event_id))
+        .bearer_auth(token)
+        .json(&event)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub async fn delete_event(token: &str, event_id: &str) -> Result<(), String> {
     let client = reqwest::Client::new();
     let resp = client
