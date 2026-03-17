@@ -4,6 +4,7 @@ mod commands;
 mod tray;
 mod hotkey;
 mod sync;
+mod oauth_callback;
 
 use std::sync::Mutex;
 use rusqlite::Connection;
