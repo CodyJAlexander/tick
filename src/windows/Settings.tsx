@@ -1,2 +1,19 @@
-// src/windows/Settings.tsx  (stub — to be replaced in Task 12)
-export function Settings() { return <div className="p-4 text-zinc-400 font-mono text-sm">Settings — coming soon</div>; }
+import { ClientManager } from "../components/ClientManager";
+import { ProjectManager } from "../components/ProjectManager";
+
+export function Settings() {
+  return (
+    <div className="p-4 font-mono flex flex-col gap-6 max-w-lg">
+      <ClientManager />
+      <ProjectManager />
+      <div>
+        <h3 className="text-xs tracking-wider text-zinc-400 uppercase mb-2">Hotkey</h3>
+        <div className="text-sm text-zinc-400">Global shortcut: <span className="text-white">Ctrl+K</span></div>
+      </div>
+      <div>
+        <h3 className="text-xs tracking-wider text-zinc-400 uppercase mb-2">Theme</h3>
+        <div className="text-sm text-zinc-400">Dark mode active.</div>
+      </div>
+    </div>
+  );
+}
