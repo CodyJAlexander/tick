@@ -3,6 +3,7 @@ import { useEntries } from "../hooks/useEntries";
 import { useClients } from "../hooks/useClients";
 import { useProjects } from "../hooks/useProjects";
 import { generateCsv, downloadCsv } from "../lib/export";
+import { SyncPanel } from "../components/SyncPanel";
 import type { Entry } from "../lib/types";
 
 type Range = "day" | "week" | "month" | "custom";
@@ -112,6 +113,8 @@ export function Reports() {
           </div>
         ))}
       </div>
+
+      <SyncPanel />
     </div>
   );
 }

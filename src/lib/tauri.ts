@@ -34,4 +34,11 @@ export const commands = {
   updateProject: (id: number, name: string, clientId?: number) =>
     invoke<void>("update_project", { id, name, clientId }),
   deleteProject: (id: number) => invoke<void>("delete_project", { id }),
+
+  googleSyncStatus: () => invoke<boolean>("google_sync_status"),
+  connectGoogle: () => invoke<void>("connect_google"),
+  disconnectGoogle: () => invoke<void>("disconnect_google"),
+  outlookSyncStatus: () => invoke<boolean>("outlook_sync_status"),
+  connectOutlook: () => invoke<void>("connect_outlook"),
+  disconnectOutlook: () => invoke<void>("disconnect_outlook"),
 };
