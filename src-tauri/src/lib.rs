@@ -51,10 +51,20 @@ pub fn run() {
                     let conn = db.lock().unwrap();
                     crate::sync::get_pending_entries(&conn).unwrap_or_default()
                 };
-                for entry in pending {
-                    let google_token_path = app_handle.path().app_data_dir().unwrap().join("google_token.json");
-                    if google_token_path.exists() {
-                        if let Ok(token_json) = std::fs::read_to_string(&google_token_path) {
+                for entry in &pending {
+                    let data_dir = app_handle.path().app_data_dir()
+                        .unwrap_or_else(|_| std::path::PathBuf::from("."));
+                    let google_path = data_dir.join("google_token.json");
+                    let outlook_path = data_dir.join("outlook_token.json");
+                    let google_connected = google_path.exists();
+                    let outlook_connected = outlook_path.exists();
+
+                    let mut google_synced = entry.google_event_id.is_some();
+                    let mut outlook_synced = entry.outlook_event_id.is_some();
+
+                    // Try Google if connected and not yet synced
+                    if google_connected && !google_synced {
+                        if let Ok(token_json) = std::fs::read_to_string(&google_path) {
                             if let Ok(token) = serde_json::from_str::<crate::sync::google::GoogleToken>(&token_json) {
                                 let result = crate::sync::google::create_event(
                                     &token.access_token, &entry.task, "", "",
@@ -63,14 +73,19 @@ pub fn run() {
                                 ).await;
                                 if let Ok(event_id) = result {
                                     let conn = db.lock().unwrap();
-                                    crate::sync::mark_synced_google(&conn, entry.id, &event_id).ok();
+                                    conn.execute(
+                                        "UPDATE entries SET google_event_id=?1 WHERE id=?2",
+                                        rusqlite::params![event_id, entry.id],
+                                    ).ok();
+                                    google_synced = true;
                                 }
                             }
                         }
                     }
-                    let outlook_token_path = app_handle.path().app_data_dir().unwrap().join("outlook_token.json");
-                    if outlook_token_path.exists() {
-                        if let Ok(token_json) = std::fs::read_to_string(&outlook_token_path) {
+
+                    // Try Outlook if connected and not yet synced
+                    if outlook_connected && !outlook_synced {
+                        if let Ok(token_json) = std::fs::read_to_string(&outlook_path) {
                             if let Ok(token) = serde_json::from_str::<crate::sync::outlook::OutlookToken>(&token_json) {
                                 let result = crate::sync::outlook::create_event(
                                     &token.access_token, &entry.task, "", "",
@@ -78,10 +93,24 @@ pub fn run() {
                                 ).await;
                                 if let Ok(event_id) = result {
                                     let conn = db.lock().unwrap();
-                                    crate::sync::mark_synced_outlook(&conn, entry.id, &event_id).ok();
+                                    conn.execute(
+                                        "UPDATE entries SET outlook_event_id=?1 WHERE id=?2",
+                                        rusqlite::params![event_id, entry.id],
+                                    ).ok();
+                                    outlook_synced = true;
                                 }
                             }
                         }
+                    }
+
+                    // Clear sync_pending only when all connected providers have been synced
+                    let all_done = (!google_connected || google_synced) && (!outlook_connected || outlook_synced);
+                    if all_done {
+                        let conn = db.lock().unwrap();
+                        conn.execute(
+                            "UPDATE entries SET sync_pending=0 WHERE id=?1",
+                            rusqlite::params![entry.id],
+                        ).ok();
                     }
                 }
             });

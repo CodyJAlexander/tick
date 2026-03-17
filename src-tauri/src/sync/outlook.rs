@@ -37,7 +37,7 @@ pub async fn exchange_code(
 
     #[derive(Deserialize)]
     struct TokenResponse { access_token: String, refresh_token: Option<String>, expires_in: i64 }
-    let body: TokenResponse = resp.json().await.map_err(|e| e.to_string())?;
+    let body: TokenResponse = resp.error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
     let expires_at = chrono::Utc::now().timestamp() + body.expires_in;
     Ok(OutlookToken {
         access_token: body.access_token,
@@ -88,17 +88,18 @@ pub async fn create_event(
         .map_err(|e| e.to_string())?;
     #[derive(Deserialize)]
     struct EventResponse { id: String }
-    let body: EventResponse = resp.json().await.map_err(|e| e.to_string())?;
+    let body: EventResponse = resp.error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
     Ok(body.id)
 }
 
 pub async fn delete_event(token: &str, event_id: &str) -> Result<(), String> {
     let client = reqwest::Client::new();
-    client
+    let resp = client
         .delete(format!("https://graph.microsoft.com/v1.0/me/events/{}", event_id))
         .bearer_auth(token)
         .send()
         .await
         .map_err(|e| e.to_string())?;
+    resp.error_for_status().map_err(|e| e.to_string())?;
     Ok(())
 }
