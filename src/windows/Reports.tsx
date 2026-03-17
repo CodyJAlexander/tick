@@ -54,13 +54,13 @@ export function Reports() {
   const { projects } = useProjects();
 
   const summaryByClient = useMemo(() => {
-    const map = new Map<number | undefined, { name: string; ms: number }>();
+    const map = new Map<number | undefined, { id: string; name: string; ms: number }>();
     entries.filter(e => e.stoppedAt).forEach(e => {
       const ms = new Date(e.stoppedAt!).getTime() - new Date(e.startedAt).getTime();
       const key = e.clientId;
       const name = clients.find(c => c.id === key)?.name ?? "(No client)";
       const existing = map.get(key);
-      map.set(key, { name, ms: (existing?.ms ?? 0) + ms });
+      map.set(key, { id: String(key ?? "none"), name, ms: (existing?.ms ?? 0) + ms });
     });
     return [...map.values()].sort((a, b) => b.ms - a.ms);
   }, [entries, clients]);
@@ -105,8 +105,8 @@ export function Reports() {
         {summaryByClient.length === 0 && (
           <div className="text-zinc-600 text-sm text-center py-8">No completed entries in this range.</div>
         )}
-        {summaryByClient.map(({ name, ms }) => (
-          <div key={name} className="flex items-center justify-between border border-zinc-800 rounded px-3 py-2">
+        {summaryByClient.map(({ id, name, ms }) => (
+          <div key={id} className="flex items-center justify-between border border-zinc-800 rounded px-3 py-2">
             <span className="text-sm text-white">{name}</span>
             <span className="text-sm text-zinc-400">{fmtHrs(ms)}</span>
           </div>
