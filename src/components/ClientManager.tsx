@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useClients } from "../hooks/useClients";
 
-export function ClientManager() {
+interface Props {
+  onMutation?: () => void;
+}
+
+export function ClientManager({ onMutation }: Props) {
   const { clients, createClient, deleteClient } = useClients();
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#6366f1");
@@ -11,12 +15,15 @@ export function ClientManager() {
     if (!newName.trim()) return;
     await createClient(newName.trim(), newColor);
     setNewName("");
+    setNewColor("#6366f1");
+    onMutation?.();
   };
 
   const handleDelete = async (id: number) => {
     try {
       setError("");
       await deleteClient(id);
+      onMutation?.();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     }
